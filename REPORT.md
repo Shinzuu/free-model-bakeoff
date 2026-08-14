@@ -139,7 +139,7 @@ One sentence, and two questions this model had never once answered correctly it 
 
 This is the finding that matters more than the ranking, and it is not the one we expected. The per-minute limit is an annoyance: it slows a sweep down but you get there. The limit that actually stops you is **tokens per day**, which does not appear on the pricing page at all — it only shows up inside a 429.
 
-The assistant spends a lot of tokens per question for reasons that have nothing to do with the model: the system prompt plus all 17 tool schemas is roughly 3k tokens, it is resent on every round trip, and a question takes about 2.5 round trips. Divide the daily budget by that and the free tier is not "slow" — it is small.
+The assistant spends a lot of tokens per question for reasons that have nothing to do with the model: the system prompt plus all 17 tool schemas is 1,783 tokens, and it is resent on every round trip. Measured against what the providers billed, the winning model makes about 1.7 round trips per question. Divide the daily budget by that and the free tier is not "slow" — it is small.
 
 The questions-per-minute column is arithmetic, budget over cost; real throughput is lower, because a question's round trips arrive within seconds of each other rather than spread across the minute, so the bucket empties in a burst. This sweep had to pace at roughly one question per minute. The questions-per-day column is the number that decides whether this is deployable.
 
