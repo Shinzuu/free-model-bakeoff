@@ -239,8 +239,17 @@ function buildHeat() {
 
   let s = `<div class="hhead"><span class="spacer"></span>${qs.map((q) => `<span>${q.id}</span>`).join('')}</div>`;
   rows.forEach((m) => {
+    // The row summary carries the number, so the narrow layout can drop the
+    // per-cell text without losing the reading.
+    const clean = qs.filter((q) => {
+      const c = m.perQuestion[q.id];
+      return c && c.total && c.pass === c.total;
+    }).length;
     s += `<div class="hrow" data-model="${m.label}">
-      <div class="rlabel" title="click to isolate">${short(m.model)} · ${m.provider}</div>
+      <div class="rlabel" title="click to isolate">
+        <b>${short(m.model)}</b>
+        <span class="rsum">${m.provider} · ${clean}/${qs.length} always right</span>
+      </div>
       ${qs.map((q) => {
         const c = m.perQuestion[q.id] ?? { pass: 0, total: 0 };
         if (!c.total) return `<div class="cell none">–</div>`;
@@ -251,8 +260,14 @@ function buildHeat() {
   });
   $('#heat').innerHTML = s;
 
+  // Hover for pointers, tap for touch — the narrow layout hides the cell text,
+  // so the detail panel is the only way to read a cell there.
   $$('#heat .cell[data-q]').forEach((c) => {
     c.addEventListener('mouseenter', () => showQuestion(c.dataset.q));
+    c.addEventListener('click', () => {
+      showQuestion(c.dataset.q);
+      $('#qDetail').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
   });
   $$('#heat .rlabel').forEach((l) => {
     l.addEventListener('click', () => {

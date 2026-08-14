@@ -137,11 +137,16 @@ td.num { font-family: var(--mono); }
 .dot-label { font: 11px var(--mono); fill: var(--ink-dim); }
 
 /* ---------------------------------------------------------------- heatmap */
-.heat-wrap { margin-top: 1.6rem; overflow-x: auto; }
-.heat { display: grid; gap: 4px; min-width: 780px; }
-.heat .hrow { display: grid; grid-template-columns: 210px repeat(14, 1fr); gap: 4px; align-items: center; }
-.heat .rlabel { font: 11px var(--mono); color: var(--ink-dim); text-align: right; padding-right: .4rem; cursor: pointer; }
-.heat .rlabel:hover { color: var(--ink); }
+/* The grid fits its container at every width instead of forcing the page to
+   scroll sideways: flexible columns down to tablet, then a stacked layout where
+   each model gets its own strip of cells under its own name. */
+.heat-wrap { margin-top: 1.6rem; }
+.heat { display: grid; gap: 4px; }
+.heat .hrow { display: grid; grid-template-columns: minmax(0, 190px) repeat(14, minmax(0, 1fr)); gap: 4px; align-items: center; }
+.heat .rlabel { font: 11px/1.35 var(--mono); color: var(--ink-dim); text-align: right; padding-right: .5rem; cursor: pointer; overflow-wrap: anywhere; }
+.heat .rlabel b { display: block; color: var(--ink); font-weight: 500; }
+.heat .rlabel .rsum { color: var(--ink-faint); font-size: 10px; }
+.heat .rlabel:hover, .heat .rlabel:hover b { color: #fff; }
 .heat .cell {
   height: 30px; border-radius: 6px; display: grid; place-items: center;
   font: 11px var(--mono); color: #06110c; cursor: default; transition: transform .16s, filter .16s;
@@ -151,10 +156,32 @@ td.num { font-family: var(--mono); }
 .heat .cell.mid  { background: var(--mid); }
 .heat .cell.bad  { background: var(--bad); color: #fff; }
 .heat .cell.none { background: #1b212b; color: var(--ink-faint); }
-.heat .hhead { display: grid; grid-template-columns: 210px repeat(14, 1fr); gap: 4px; }
-.heat .hhead span { font: 10px var(--mono); color: var(--ink-faint); writing-mode: vertical-rl; transform: rotate(195deg); height: 92px; }
-.heat .hhead .spacer { writing-mode: horizontal-tb; transform: none; }
+.heat .hhead { display: grid; grid-template-columns: minmax(0, 190px) repeat(14, minmax(0, 1fr)); gap: 4px; }
+.heat .hhead span { font: 10px var(--mono); color: var(--ink-faint); writing-mode: vertical-rl; transform: rotate(195deg); height: 92px; justify-self: center; }
+.heat .hhead .spacer { writing-mode: horizontal-tb; transform: none; height: auto; }
 .heat .hrow.faded { opacity: .22; }
+.heat-hint { display: none; color: var(--ink-faint); font-size: .8rem; margin-top: .8rem; }
+
+/* Below this the ratio text stops fitting in a cell, so the colour carries the
+   signal and the row summary carries the number. Cells stay tappable. */
+@media (max-width: 900px) {
+  .heat .cell { font-size: 10px; height: 26px; }
+  .heat .hrow, .heat .hhead { grid-template-columns: minmax(0, 130px) repeat(14, minmax(0, 1fr)); }
+  .heat .hhead span { height: 76px; }
+}
+
+@media (max-width: 700px) {
+  .heat { gap: 10px; }
+  .heat .hhead { display: none; }
+  .heat .hrow { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
+  .heat .rlabel { grid-column: 1 / -1; text-align: left; padding: 0 0 .15rem; }
+  .heat .rlabel b { display: inline; }
+  .heat .rlabel .rsum { margin-left: .4rem; }
+  .heat .cell { height: 20px; font-size: 0; border-radius: 4px; }
+  .heat .cell:hover { transform: none; }
+  .heat-hint { display: block; }
+}
+
 
 .legend-row { display: flex; gap: 1.4rem; margin-top: 1rem; color: var(--ink-faint); font-size: .82rem; flex-wrap: wrap; }
 .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: .4rem; vertical-align: -1px; }
