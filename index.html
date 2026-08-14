@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which free LLM should run your assistant? — a measured answer</title>
+<meta name="description" content="126 graded attempts across six free models. The winner is the small one — and the limit that decides deployment is a daily token cap nobody documents.">
+<meta property="og:title" content="Which free LLM should run your assistant?">
+<meta property="og:description" content="126 graded attempts, six free models, two experiments. The winner is the small one.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="progress"><i id="progressBar"></i></div>
+
+<nav class="nav">
+  <a class="brand" href="#top">free-model bake-off</a>
+  <div class="links">
+    <a href="#scoreboard">Scoreboard</a>
+    <a href="#questions">Per question</a>
+    <a href="#wall">The wall</a>
+    <a href="#calc">Calculator</a>
+    <a href="#experiments">Experiments</a>
+    <a href="#method">Method</a>
+  </div>
+</nav>
+
+<header id="top" class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <p class="eyebrow">Measured 14 Aug 2026 · <span id="attemptCount">0</span> graded attempts · 14 questions</p>
+  <h1>The best free model for our assistant<br>is the <em>small</em> one.</h1>
+  <p class="lede">
+    Six free models, run through the real production tool loop against a fixture database.
+    Two scores per answer, kept apart on purpose. Then two experiments to find out whether the
+    thing holding us back was the model at all.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat" data-reveal>
+      <span class="stat-num" data-count="88" data-suffix="%">0</span>
+      <span class="stat-label">answers correct<br><b id="winnerName">gpt-oss-20b</b> on Groq</span>
+    </div>
+    <div class="stat" data-reveal>
+      <span class="stat-num" data-count="60">0</span>
+      <span class="stat-label">questions per day<br>the whole team gets, free</span>
+    </div>
+    <div class="stat" data-reveal>
+      <span class="stat-num" data-count="22" data-prefix="−" data-suffix="%">0</span>
+      <span class="stat-label">tokens per question<br>from one prompt change</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">scroll<span></span></div>
+</header>
+
+<main>
+
+<!-- ─────────────────────────────────────────────── verdict -->
+<section class="band">
+  <div class="wrap">
+    <h2 data-reveal>The short version</h2>
+    <div class="cards">
+      <article class="card accent" data-reveal>
+        <h3>Small beats large</h3>
+        <p><code>gpt-oss-20b</code> scored <b>88%</b> against its own six-times-larger sibling's
+        <b>64%</b>. The big one produced ten failed calls to the small one's two — most of them
+        tool arguments that did not match the schema.</p>
+      </article>
+      <article class="card" data-reveal>
+        <h3>Provider ≠ model</h3>
+        <p>The same weights on a different free host scored <b>64%</b> at a <b>28-second</b> median,
+        and on three questions collapsed into 2048 tokens of <code>!!!!</code> — <i>after</i>
+        calling the correct tool.</p>
+      </article>
+      <article class="card warn" data-reveal>
+        <h3>The real ceiling is daily</h3>
+        <p>Not tokens per minute — tokens per <b>day</b>. 200,000 per model, documented nowhere
+        except inside a 429. At our prompt size that is about <b>60 questions a day</b> for
+        everyone combined.</p>
+      </article>
+      <article class="card good" data-reveal>
+        <h3>The best fix was a sentence</h3>
+        <p>The prompt defined "overdue" but never defined "open". Adding one line took two
+        questions from <b>never</b> correct to <b>mostly</b> correct — a bigger gain than the gap
+        between any two models here.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── scoreboard -->
+<section id="scoreboard" class="band alt">
+  <div class="wrap">
+    <h2 data-reveal>Scoreboard</h2>
+    <p class="sub" data-reveal>
+      <b>Tool routing</b> asks whether it reached for the right data. <b>Answers</b> asks whether it
+      then said the right thing. Averaging them together would hide which problem you have.
+      Click a column to sort.
+    </p>
+
+    <div class="table-wrap" data-reveal>
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th data-sort="model" class="left">model</th>
+            <th data-sort="provider" class="left">provider</th>
+            <th data-sort="toolPct">tool routing</th>
+            <th data-sort="answerPct" class="sorted">answers</th>
+            <th data-sort="errors">errors</th>
+            <th data-sort="medianMs">median</th>
+            <th data-sort="tokensPerQ">tokens / question</th>
+            <th data-sort="questionsPerDay">questions / day</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="chart-head" data-reveal>
+      <h3>Accuracy</h3>
+      <div class="toggle" id="metricToggle">
+        <button class="on" data-metric="answerPct">answers</button>
+        <button data-metric="toolPct">tool routing</button>
+        <button data-metric="tokensPerQ">tokens / question</button>
+        <button data-metric="medianMs">latency</button>
+      </div>
+    </div>
+    <div class="bars" id="bars" data-reveal></div>
+
+    <div class="two-col">
+      <div data-reveal>
+        <h3>Accuracy against latency</h3>
+        <p class="sub">Up and to the left is better. The axis is logarithmic — one candidate is not
+        slightly slower, it is nearly thirty times slower.</p>
+        <div id="scatter" class="plot"></div>
+      </div>
+      <div data-reveal>
+        <h3>What the free tier costs you</h3>
+        <p class="sub">Every model's daily budget divided by what one question actually costs it.
+        Chattier models are punished twice.</p>
+        <div id="perDay" class="plot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── per question -->
+<section id="questions" class="band">
+  <div class="wrap">
+    <h2 data-reveal>Where each model breaks</h2>
+    <p class="sub" data-reveal>
+      A percentage hides the shape of a failure. Weak models are not uniformly weak — they fail the
+      same two or three questions every single time. Hover a cell; click a row label to isolate it.
+    </p>
+    <div class="heat-wrap" data-reveal>
+      <div id="heat" class="heat"></div>
+      <div class="legend-row">
+        <span><i class="sw good"></i> every attempt correct</span>
+        <span><i class="sw mid"></i> flaky</span>
+        <span><i class="sw bad"></i> never correct</span>
+      </div>
+    </div>
+    <div id="qDetail" class="q-detail" hidden></div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── the wall -->
+<section id="wall" class="band alt">
+  <div class="wrap">
+    <h2 data-reveal>The wall nobody documents</h2>
+    <p class="sub" data-reveal>
+      The per-minute limit is an annoyance — it slows you down but you get there. The limit that
+      actually stops you is tokens per <b>day</b>, and it appears on no pricing page. It surfaces
+      once, inside a 429, after you have already spent it.
+    </p>
+    <div class="budget" data-reveal>
+      <div class="budget-bar"><i id="budgetFill"></i><span id="budgetLabel"></span></div>
+      <p class="budget-cap">One 42-question sweep against a 200,000-token daily budget.</p>
+    </div>
+    <div class="cards" data-reveal>
+      <article class="card">
+        <h3>Two candidates never finished</h3>
+        <p id="starvedText">—</p>
+        <p class="fine">Reported as missing data, never as a low score. A run that spent its
+        attempts queueing did not produce a measurement.</p>
+      </article>
+      <article class="card">
+        <h3>It stopped producing language</h3>
+        <p>Three answers came back as one character repeated to the output limit. Two had already
+        called the correct tool and received correct data — the collapse happened while writing
+        the reply.</p>
+        <div id="degenTable" class="mini-table"></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── calculator -->
+<section id="calc" class="band">
+  <div class="wrap">
+    <h2 data-reveal>Will it fit? — capacity &amp; cost calculator</h2>
+    <p class="sub" data-reveal>
+      Every number below the sliders is derived from what we measured, not from a vendor's page.
+      Move the inputs to your own team and see where the free tier stops being free.
+    </p>
+
+    <div class="calc" data-reveal>
+      <div class="calc-inputs">
+        <label>
+          <span>Model <b id="calcModelName"></b></span>
+          <select id="calcModel"></select>
+        </label>
+
+        <label>
+          <span>People asking questions <b id="calcPeopleV">8</b></span>
+          <input type="range" id="calcPeople" min="1" max="60" value="8">
+        </label>
+
+        <label>
+          <span>Questions each, per day <b id="calcQperV">6</b></span>
+          <input type="range" id="calcQper" min="1" max="40" value="6">
+        </label>
+
+        <div class="switches">
+          <label class="switch">
+            <input type="checkbox" id="calcRouter">
+            <span>Intent-filtered tool list <i>(measured −22% tokens)</i></span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="calcSpread">
+            <span>Spread across 2 free models <i>(daily budget is per model)</i></span>
+          </label>
+        </div>
+
+        <label class="price">
+          <span>If you go paid — price per 1M tokens (USD)</span>
+          <input type="number" id="calcPrice" min="0" step="0.01" placeholder="enter your provider's rate">
+          <i class="fine">Left blank on purpose: we did not measure anyone's pricing, and inventing
+          it would be the one dishonest number on this page.</i>
+        </label>
+      </div>
+
+      <div class="calc-out">
+        <div class="gauge">
+          <svg viewBox="0 0 220 130" aria-hidden="true">
+            <path class="g-track" d="M20,120 A90,90 0 0,1 200,120" fill="none" stroke-width="18" stroke-linecap="round"/>
+            <path id="gaugeFill" class="g-fill" d="M20,120 A90,90 0 0,1 200,120" fill="none" stroke-width="18" stroke-linecap="round"/>
+          </svg>
+          <div class="gauge-mid">
+            <b id="gaugePct">0%</b>
+            <span>of the free daily budget</span>
+          </div>
+        </div>
+
+        <ul class="readout">
+          <li><span>Questions per day</span><b id="outQ">0</b></li>
+          <li><span>Tokens per day</span><b id="outTok">0</b></li>
+          <li><span>Free daily budget</span><b id="outCap">0</b></li>
+          <li><span>Runs out after</span><b id="outUntil">—</b></li>
+          <li class="cost" hidden><span>Cost per day / month</span><b id="outCost">—</b></li>
+        </ul>
+
+        <p id="calcVerdict" class="verdict">—</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── experiments -->
+<section id="experiments" class="band alt">
+  <div class="wrap">
+    <h2 data-reveal>Two experiments</h2>
+    <p class="sub" data-reveal>
+      Each changes exactly one thing against the same model's own baseline, on the same questions,
+      so the difference is attributable. Both ran on the runner-up — the winner's daily budget was
+      already spent, which is itself the finding.
+    </p>
+
+    <div class="exp-grid">
+      <article class="exp" data-reveal>
+        <h3>1 · Send fewer tool schemas</h3>
+        <p>All 17 tool schemas go to the model on every round trip. This arm narrows the list by
+        intent with keyword matching before the call — deliberately not another model call, since
+        a router that costs a round trip gives back what it saves.</p>
+        <div id="expRouter" class="ab"></div>
+      </article>
+      <article class="exp" data-reveal>
+        <h3>2 · Define "open" in the prompt</h3>
+        <p>Models counted only <code>TODO</code> as open and dropped <code>IN_PROGRESS</code> —
+        sometimes in the same reply that had listed <code>IN_PROGRESS</code> correctly one clause
+        earlier. The prompt defined "overdue" and never defined "open".</p>
+        <div id="expPrompt" class="ab"></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── compare tray -->
+<section class="band">
+  <div class="wrap">
+    <h2 data-reveal>Compare any two</h2>
+    <p class="sub" data-reveal>Drag a model card into a slot. Touch works too.</p>
+    <div class="compare" data-reveal>
+      <div class="pool" id="pool"></div>
+      <div class="slots">
+        <div class="slot" data-slot="0"><span>drop a model</span></div>
+        <div class="vs">vs</div>
+        <div class="slot" data-slot="1"><span>drop a model</span></div>
+      </div>
+      <div id="compareOut" class="compare-out"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── method -->
+<section id="method" class="band alt">
+  <div class="wrap">
+    <h2 data-reveal>How this was measured</h2>
+    <div class="method" data-reveal>
+      <div>
+        <h3>The real code path</h3>
+        <p>The eval runs production's own tool loop, its 17 tool schemas and executors, and its
+        system prompt read out of the source at run time so it cannot drift. Only the data layer is
+        swapped: every tool already takes a small database interface, so a fixture implementation
+        stands in for it. No database, no writes anywhere.</p>
+      </div>
+      <div>
+        <h3>Hostile on purpose</h3>
+        <p>A client and one of its projects share a name. One person's first name is another
+        person's surname. A completed task sits past its due date and must not count as overdue.
+        A shift is left open and a timer is still running.</p>
+      </div>
+      <div>
+        <h3>Grading, and its price</h3>
+        <p>Substring and regex against pinned ground truth — no model-as-judge, so any grader change
+        can be re-scored against every stored reply for free. The price is that an unusually phrased
+        correct answer can still fail, so failures are read, not trusted.</p>
+      </div>
+      <div>
+        <h3>Six harness bugs first</h3>
+        <p>Every early "bad model" result turned out to be our own: silent model substitution on a
+        404, models that cannot call tools at all, pacing sized per round trip instead of per
+        question, and four graders that failed correct answers — one over a Unicode apostrophe.
+        Read the reply before believing a low score.</p>
+      </div>
+    </div>
+
+    <div class="disclosure" data-reveal>
+      <h3>What this page is not</h3>
+      <ul>
+        <li>Every person, client and project named here is <b>invented</b>. The recorded runs used
+        internal names with the same structure; the names do not affect any measurement, the shapes
+        do, and the shapes are unchanged.</li>
+        <li>The fixture database is small — about 5 people, 8 projects, 18 tasks. It measures routing
+        and reading, not behaviour at production scale.</li>
+        <li>Two candidates were never evaluated: they exhausted their daily budgets before producing
+        a usable sample. Nothing here is a judgement of them.</li>
+        <li>Both experiments ran on the runner-up, not the winner, for the same budget reason.
+        Whether the deltas carry across is untested.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Built from <span id="footAttempts">126</span> stored transcripts. The report regenerates from
+  them with zero API calls, so a grader change costs nothing to re-score.</p>
+  <p class="fine">Numbers on this page are read from <code>data.json</code>, which is emitted by the
+  harness itself — the page cannot drift from the measurement.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js" integrity="sha384-N3H1mDackcFNb3oKRPjCVhDV6IToMfPPDTKJF9ufjBSs/wNeQVMFsbPH5btvcSNH" crossorigin="anonymous"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+{
+  "totalAttempts": 126,
+  "questions": [
+    {
+      "id": "client-vs-project",
+      "ask": "Which projects under Northwind have active tasks right now?",
+      "why": "THE regression: \"Northwind\" names both a client (6 projects, 12 open) and one of its projects (4 tasks). Answering from the project is the 2026-08-05 miss."
+    },
+    {
+      "id": "project-scoped",
+      "ask": "How many open tasks does the Northwind Media project itself have?",
+      "why": "The mirror of the above — when the user explicitly says \"the project\", staying scoped is correct. Truth is 2 open (1 TODO + 1 IN_PROGRESS) of 4 total."
+    },
+    {
+      "id": "ambiguous-person",
+      "ask": "Tell me about Rahman.",
+      "why": "Rahman is one person's first name and another's last name. A good answer surfaces the ambiguity instead of silently picking the first row."
+    },
+    {
+      "id": "on-leave-today",
+      "ask": "Who is on leave today?",
+      "why": "Approved leave spanning today. Straight routing check."
+    },
+    {
+      "id": "leave-approved",
+      "ask": "Has Siddique's upcoming annual leave been approved yet?",
+      "why": "PENDING is not APPROVED. Scoped to the UPCOMING ANNUAL request on purpose: Siddique also has an APPROVED past sick leave, so the original phrasing (\"his leave request\") had two defensible answers and failed models for being right about the wrong one."
+    },
+    {
+      "id": "leave-balance",
+      "ask": "How many annual leave days does Siddique have left?",
+      "why": "Requires reading remaining_days (7), not quota (10) or quota-minus-used (10)."
+    },
+    {
+      "id": "clocked-in",
+      "ask": "Who is working right now?",
+      "why": "One dangling shift and one running task timer, same person."
+    },
+    {
+      "id": "overdue",
+      "ask": "What tasks are overdue?",
+      "why": "One DONE task is past its due date. Counting it is the classic error."
+    },
+    {
+      "id": "workload",
+      "ask": "What is on Tanvir's plate?",
+      "why": "4 open, 2 overdue. Tests reading a nested count object."
+    },
+    {
+      "id": "eod",
+      "ask": "What did Siddique report at the end of his last shift?",
+      "why": "EOD lines exist only via eod_report — models often try search_tasks instead."
+    },
+    {
+      "id": "holiday",
+      "ask": "When is the next company holiday?",
+      "why": "Defaults to upcoming only; the past Company Offsite must not be returned."
+    },
+    {
+      "id": "project-time",
+      "ask": "How much time has been logged against Harbourline Studio?",
+      "why": "360 minutes = 6 hours. Tests an RPC-backed tool and a unit conversion."
+    },
+    {
+      "id": "empty-result",
+      "ask": "What tasks are assigned to Farhana?",
+      "why": "She is INACTIVE with zero tasks. The honest answer is \"none\" — not an invented list."
+    },
+    {
+      "id": "refuse-to-guess",
+      "ask": "What is the MEPS score for Tanvir this month?",
+      "why": "MEPS is deliberately out of the tool set (spec §9). The model must say it cannot see that, not improvise."
+    }
+  ],
+  "models": [
+    {
+      "label": "groq:openai/gpt-oss-20b",
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "tag": "baseline",
+      "attempts": 42,
+      "errors": 2,
+      "toolPct": 95,
+      "answerPct": 88,
+      "answerPctOfOk": 93,
+      "medianMs": 1042,
+      "p95Ms": 3019,
+      "tokensPerQ": 3312,
+      "toolsOffered": 17,
+      "tpm": 8000,
+      "tpd": 200000,
+      "tpdUsed": 200000,
+      "questionsPerDay": 60,
+      "perQuestion": {
+        "client-vs-project": {
+          "pass": 1,
+          "total": 3
+        },
+        "project-scoped": {
+          "pass": 1,
+          "total": 3
+        },
+        "ambiguous-person": {
+          "pass": 2,
+          "total": 3
+        },
+        "on-leave-today": {
+          "pass": 3,
+          "total": 3
+        },
+        "leave-approved": {
+          "pass": 3,
+          "total": 3
+        },
+        "leave-balance": {
+          "pass": 3,
+          "total": 3
+        },
+        "clocked-in": {
+          "pass": 3,
+          "total": 3
+        },
+        "overdue": {
+          "pass": 3,
+          "total": 3
+        },
+        "workload": {
+          "pass": 3,
+          "total": 3
+        },
+        "eod": {
+          "pass": 3,
+          "total": 3
+        },
+        "holiday": {
+          "pass": 3,
+          "total": 3
+        },
+        "project-time": {
+          "pass": 3,
+          "total": 3
+        },
+        "empty-result": {
+          "pass": 3,
+          "total": 3
+        },
+        "refuse-to-guess": {
+          "pass": 3,
+          "total": 3
+        }
+      }
+    },
+    {
+      "label": "openrouter:openai/gpt-oss-20b:free",
+      "provider": "openrouter",
+      "model": "openai/gpt-oss-20b:free",
+      "tag": "cross-provider",
+      "attempts": 14,
+      "errors": 2,
+      "toolPct": 79,
+      "answerPct": 64,
+      "answerPctOfOk": 75,
+      "medianMs": 27909,
+      "p95Ms": 223768,
+      "tokensPerQ": 3235,
+      "toolsOffered": 17,
+      "tpm": null,
+      "tpd": null,
+      "tpdUsed": null,
+      "questionsPerDay": null,
+      "perQuestion": {
+        "client-vs-project": {
+          "pass": 1,
+          "total": 1
+        },
+        "project-scoped": {
+          "pass": 1,
+          "total": 1
+        },
+        "ambiguous-person": {
+          "pass": 1,
+          "total": 1
+        },
+        "on-leave-today": {
+          "pass": 0,
+          "total": 1
+        },
+        "leave-approved": {
+          "pass": 1,
+          "total": 1
+        },
+        "leave-balance": {
+          "pass": 1,
+          "total": 1
+        },
+        "clocked-in": {
+          "pass": 0,
+          "total": 1
+        },
+        "overdue": {
+          "pass": 1,
+          "total": 1
+        },
+        "workload": {
+          "pass": 1,
+          "total": 1
+        },
+        "eod": {
+          "pass": 0,
+          "total": 1
+        },
+        "holiday": {
+          "pass": 0,
+          "total": 1
+        },
+        "project-time": {
+          "pass": 0,
+          "total": 1
+        },
+        "empty-result": {
+          "pass": 1,
+          "total": 1
+        },
+        "refuse-to-guess": {
+          "pass": 1,
+          "total": 1
+        }
+      }
+    },
+    {
+      "label": "groq:openai/gpt-oss-120b",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "tag": "baseline",
+      "attempts": 42,
+      "errors": 10,
+      "toolPct": 76,
+      "answerPct": 64,
+      "answerPctOfOk": 84,
+      "medianMs": 1149,
+      "p95Ms": 1951,
+      "tokensPerQ": 2910,
+      "toolsOffered": 17,
+      "tpm": 8000,
+      "tpd": null,
+      "tpdUsed": null,
+      "questionsPerDay": null,
+      "perQuestion": {
+        "client-vs-project": {
+          "pass": 0,
+          "total": 3
+        },
+        "project-scoped": {
+          "pass": 0,
+          "total": 3
+        },
+        "ambiguous-person": {
+          "pass": 0,
+          "total": 3
+        },
+        "on-leave-today": {
+          "pass": 0,
+          "total": 3
+        },
+        "leave-approved": {
+          "pass": 3,
+          "total": 3
+        },
+        "leave-balance": {
+          "pass": 3,
+          "total": 3
+        },
+        "clocked-in": {
+          "pass": 3,
+          "total": 3
+        },
+        "overdue": {
+          "pass": 3,
+          "total": 3
+        },
+        "workload": {
+          "pass": 3,
+          "total": 3
+        },
+        "eod": {
+          "pass": 3,
+          "total": 3
+        },
+        "holiday": {
+          "pass": 0,
+          "total": 3
+        },
+        "project-time": {
+          "pass": 3,
+          "total": 3
+        },
+        "empty-result": {
+          "pass": 3,
+          "total": 3
+        },
+        "refuse-to-guess": {
+          "pass": 3,
+          "total": 3
+        }
+      }
+    },
+    {
+      "label": "groq:llama-3.1-8b-instant",
+      "provider": "groq",
+      "model": "llama-3.1-8b-instant",
+      "tag": "baseline",
+      "attempts": 28,
+      "errors": 5,
+      "toolPct": 75,
+      "answerPct": 32,
+      "answerPctOfOk": 39,
+      "medianMs": 599,
+      "p95Ms": 798,
+      "tokensPerQ": 4394,
+      "toolsOffered": 17,
+      "tpm": 6000,
+      "tpd": null,
+      "tpdUsed": null,
+      "questionsPerDay": null,
+      "perQuestion": {
+        "client-vs-project": {
+          "pass": 0,
+          "total": 2
+        },
+        "project-scoped": {
+          "pass": 0,
+          "total": 2
+        },
+        "ambiguous-person": {
+          "pass": 0,
+          "total": 2
+        },
+        "on-leave-today": {
+          "pass": 0,
+          "total": 2
+        },
+        "leave-approved": {
+          "pass": 1,
+          "total": 2
+        },
+        "leave-balance": {
+          "pass": 0,
+          "total": 2
+        },
+        "clocked-in": {
+          "pass": 2,
+          "total": 2
+        },
+        "overdue": {
+          "pass": 0,
+          "total": 2
+        },
+        "workload": {
+          "pass": 2,
+          "total": 2
+        },
+        "eod": {
+          "pass": 2,
+          "total": 2
+        },
+        "holiday": {
+          "pass": 0,
+          "total": 2
+        },
+        "project-time": {
+          "pass": 0,
+          "total": 2
+        },
+        "empty-result": {
+          "pass": 1,
+          "total": 2
+        },
+        "refuse-to-guess": {
+          "pass": 1,
+          "total": 2
+        }
+      }
+    }
+  ],
+  "starved": [
+    {
+      "label": "groq:llama-3.3-70b-versatile",
+      "provider": "groq",
+      "model": "llama-3.3-70b-versatile",
+      "tag": "baseline",
+      "attempts": 42,
+      "errors": 28,
+      "toolPct": 33,
+      "answerPct": 26,
+      "answerPctOfOk": 79,
+      "medianMs": 1076,
+      "p95Ms": 31534,
+      "tokensPerQ": 5288,
+      "toolsOffered": 17,
+      "tpm": 12000,
+      "tpd": 100000,
+      "tpdUsed": 100000,
+      "questionsPerDay": 18,
+      "perQuestion": {
+        "client-vs-project": {
+          "pass": 3,
+          "total": 3
+        },
+        "project-scoped": {
+          "pass": 3,
+          "total": 3
+        },
+        "ambiguous-person": {
+          "pass": 0,
+          "total": 3
+        },
+        "on-leave-today": {
+          "pass": 3,
+          "total": 3
+        },
+        "leave-approved": {
+          "pass": 2,
+          "total": 3
+        },
+        "leave-balance": {
+          "pass": 0,
+          "total": 3
+        },
+        "clocked-in": {
+          "pass": 0,
+          "total": 3
+        },
+        "overdue": {
+          "pass": 0,
+          "total": 3
+        },
+        "workload": {
+          "pass": 0,
+          "total": 3
+        },
+        "eod": {
+          "pass": 0,
+          "total": 3
+        },
+        "holiday": {
+          "pass": 0,
+          "total": 3
+        },
+        "project-time": {
+          "pass": 0,
+          "total": 3
+        },
+        "empty-result": {
+          "pass": 0,
+          "total": 3
+        },
+        "refuse-to-guess": {
+          "pass": 0,
+          "total": 3
+        }
+      }
+    },
+    {
+      "label": "groq:qwen/qwen3.6-27b",
+      "provider": "groq",
+      "model": "qwen/qwen3.6-27b",
+      "tag": "baseline",
+      "attempts": 42,
+      "errors": 42,
+      "toolPct": 0,
+      "answerPct": 0,
+      "answerPctOfOk": 0,
+      "medianMs": 0,
+      "p95Ms": 0,
+      "tokensPerQ": 0,
+      "toolsOffered": 17,
+      "tpm": 8000,
+      "tpd": 200000,
+      "tpdUsed": 200000,
+      "questionsPerDay": null,
+      "perQuestion": {
+        "client-vs-project": {
+          "pass": 0,
+          "total": 3
+        },
+        "project-scoped": {
+          "pass": 0,
+          "total": 3
+        },
+        "ambiguous-person": {
+          "pass": 0,
+          "total": 3
+        },
+        "on-leave-today": {
+          "pass": 0,
+          "total": 3
+        },
+        "leave-approved": {
+          "pass": 0,
+          "total": 3
+        },
+        "leave-balance": {
+          "pass": 0,
+          "total": 3
+        },
+        "clocked-in": {
+          "pass": 0,
+          "total": 3
+        },
+        "overdue": {
+          "pass": 0,
+          "total": 3
+        },
+        "workload": {
+          "pass": 0,
+          "total": 3
+        },
+        "eod": {
+          "pass": 0,
+          "total": 3
+        },
+        "holiday": {
+          "pass": 0,
+          "total": 3
+        },
+        "project-time": {
+          "pass": 0,
+          "total": 3
+        },
+        "empty-result": {
+          "pass": 0,
+          "total": 3
+        },
+        "refuse-to-guess": {
+          "pass": 0,
+          "total": 3
+        }
+      }
+    }
+  ],
+  "experiments": {
+    "toolRouter": {
+      "arm": {
+        "label": "groq:openai/gpt-oss-120b",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "tag": "tool-router",
+        "attempts": 28,
+        "errors": 5,
+        "toolPct": 79,
+        "answerPct": 68,
+        "answerPctOfOk": 83,
+        "medianMs": 1475,
+        "p95Ms": 2108,
+        "tokensPerQ": 2265,
+        "toolsOffered": 8.9,
+        "tpm": 8000,
+        "tpd": null,
+        "tpdUsed": null,
+        "questionsPerDay": null,
+        "perQuestion": {
+          "client-vs-project": {
+            "pass": 0,
+            "total": 2
+          },
+          "project-scoped": {
+            "pass": 1,
+            "total": 2
+          },
+          "ambiguous-person": {
+            "pass": 0,
+            "total": 2
+          },
+          "on-leave-today": {
+            "pass": 0,
+            "total": 2
+          },
+          "leave-approved": {
+            "pass": 2,
+            "total": 2
+          },
+          "leave-balance": {
+            "pass": 2,
+            "total": 2
+          },
+          "clocked-in": {
+            "pass": 2,
+            "total": 2
+          },
+          "overdue": {
+            "pass": 2,
+            "total": 2
+          },
+          "workload": {
+            "pass": 2,
+            "total": 2
+          },
+          "eod": {
+            "pass": 2,
+            "total": 2
+          },
+          "holiday": {
+            "pass": 0,
+            "total": 2
+          },
+          "project-time": {
+            "pass": 2,
+            "total": 2
+          },
+          "empty-result": {
+            "pass": 2,
+            "total": 2
+          },
+          "refuse-to-guess": {
+            "pass": 2,
+            "total": 2
+          }
+        }
+      },
+      "baseline": {
+        "label": "groq:openai/gpt-oss-120b",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "tag": "baseline",
+        "attempts": 42,
+        "errors": 10,
+        "toolPct": 76,
+        "answerPct": 64,
+        "answerPctOfOk": 84,
+        "medianMs": 1149,
+        "p95Ms": 1951,
+        "tokensPerQ": 2910,
+        "toolsOffered": 17,
+        "tpm": 8000,
+        "tpd": null,
+        "tpdUsed": null,
+        "questionsPerDay": null,
+        "perQuestion": {
+          "client-vs-project": {
+            "pass": 0,
+            "total": 3
+          },
+          "project-scoped": {
+            "pass": 0,
+            "total": 3
+          },
+          "ambiguous-person": {
+            "pass": 0,
+            "total": 3
+          },
+          "on-leave-today": {
+            "pass": 0,
+            "total": 3
+          },
+          "leave-approved": {
+            "pass": 3,
+            "total": 3
+          },
+          "leave-balance": {
+            "pass": 3,
+            "total": 3
+          },
+          "clocked-in": {
+            "pass": 3,
+            "total": 3
+          },
+          "overdue": {
+            "pass": 3,
+            "total": 3
+          },
+          "workload": {
+            "pass": 3,
+            "total": 3
+          },
+          "eod": {
+            "pass": 3,
+            "total": 3
+          },
+          "holiday": {
+            "pass": 0,
+            "total": 3
+          },
+          "project-time": {
+            "pass": 3,
+            "total": 3
+          },
+          "empty-result": {
+            "pass": 3,
+            "total": 3
+          },
+          "refuse-to-guess": {
+            "pass": 3,
+            "total": 3
+          }
+        }
+      }
+    },
+    "promptFix": {
+      "arm": {
+        "label": "groq:openai/gpt-oss-120b",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "tag": "prompt-fix",
+        "attempts": 6,
+        "errors": 0,
+        "toolPct": 83,
+        "answerPct": 83,
+        "answerPctOfOk": 83,
+        "medianMs": 2317,
+        "p95Ms": 2585,
+        "tokensPerQ": 4771,
+        "toolsOffered": 17,
+        "tpm": 8000,
+        "tpd": null,
+        "tpdUsed": null,
+        "questionsPerDay": null,
+        "perQuestion": {
+          "client-vs-project": {
+            "pass": 2,
+            "total": 3
+          },
+          "project-scoped": {
+            "pass": 3,
+            "total": 3
+          },
+          "ambiguous-person": {
+            "pass": 0,
+            "total": 0
+          },
+          "on-leave-today": {
+            "pass": 0,
+            "total": 0
+          },
+          "leave-approved": {
+            "pass": 0,
+            "total": 0
+          },
+          "leave-balance": {
+            "pass": 0,
+            "total": 0
+          },
+          "clocked-in": {
+            "pass": 0,
+            "total": 0
+          },
+          "overdue": {
+            "pass": 0,
+            "total": 0
+          },
+          "workload": {
+            "pass": 0,
+            "total": 0
+          },
+          "eod": {
+            "pass": 0,
+            "total": 0
+          },
+          "holiday": {
+            "pass": 0,
+            "total": 0
+          },
+          "project-time": {
+            "pass": 0,
+            "total": 0
+          },
+          "empty-result": {
+            "pass": 0,
+            "total": 0
+          },
+          "refuse-to-guess": {
+            "pass": 0,
+            "total": 0
+          }
+        }
+      },
+      "baseline": {
+        "label": "groq:openai/gpt-oss-120b",
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "tag": "baseline",
+        "attempts": 42,
+        "errors": 10,
+        "toolPct": 76,
+        "answerPct": 64,
+        "answerPctOfOk": 84,
+        "medianMs": 1149,
+        "p95Ms": 1951,
+        "tokensPerQ": 2910,
+        "toolsOffered": 17,
+        "tpm": 8000,
+        "tpd": null,
+        "tpdUsed": null,
+        "questionsPerDay": null,
+        "perQuestion": {
+          "client-vs-project": {
+            "pass": 0,
+            "total": 3
+          },
+          "project-scoped": {
+            "pass": 0,
+            "total": 3
+          },
+          "ambiguous-person": {
+            "pass": 0,
+            "total": 3
+          },
+          "on-leave-today": {
+            "pass": 0,
+            "total": 3
+          },
+          "leave-approved": {
+            "pass": 3,
+            "total": 3
+          },
+          "leave-balance": {
+            "pass": 3,
+            "total": 3
+          },
+          "clocked-in": {
+            "pass": 3,
+            "total": 3
+          },
+          "overdue": {
+            "pass": 3,
+            "total": 3
+          },
+          "workload": {
+            "pass": 3,
+            "total": 3
+          },
+          "eod": {
+            "pass": 3,
+            "total": 3
+          },
+          "holiday": {
+            "pass": 0,
+            "total": 3
+          },
+          "project-time": {
+            "pass": 3,
+            "total": 3
+          },
+          "empty-result": {
+            "pass": 3,
+            "total": 3
+          },
+          "refuse-to-guess": {
+            "pass": 3,
+            "total": 3
+          }
+        }
+      }
+    }
+  },
+  "degenerate": [
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-oss-20b:free",
+      "question": "clocked-in",
+      "toolsUsed": [
+        "who_is_clocked_in"
+      ],
+      "outputTokens": 2082,
+      "ms": 105273
+    },
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-oss-20b:free",
+      "question": "holiday",
+      "toolsUsed": [
+        "holidays"
+      ],
+      "outputTokens": 2114,
+      "ms": 216740
+    },
+    {
+      "provider": "openrouter",
+      "model": "openai/gpt-oss-20b:free",
+      "question": "project-time",
+      "toolsUsed": [],
+      "outputTokens": 2048,
+      "ms": 223768
+    }
+  ]
+}
