@@ -7,6 +7,8 @@ against a fixture database.
 **→ [Read it](https://shinzuu.github.io/free-model-bakeoff/)** ·
 [static version](./REPORT.md) · [printable](./report-static.html)
 
+Portfolio: https://shinzuu.asktechguy.com/
+
 ## What we found
 
 - **The small model won.** `openai/gpt-oss-20b` answered 88% correctly with 95%
